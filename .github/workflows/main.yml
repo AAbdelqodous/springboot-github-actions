@@ -1,4 +1,4 @@
-name: Build and Deploy
+name: Build and Deploy spring boot for beginners app
 on:
   push:
     branches:
@@ -21,8 +21,29 @@ jobs:
       - name: Unit Tests
         run: mvn -B test --file pom.xml
 
-      - name: Build with Maven
+      - name: Build spring boot for beginners app
         run: |
           mvn clean
           mvn -B package --file pom.xml
 
+      - name: Build Docker image
+        run: actions/build-push-action@v3
+        with:
+          context: .
+          dockerfile: Dockerfile
+          push: false
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/spring-boot-for-beginners:$(date-'%Y-%m-%d%H-%M-%S')
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: push to Docker Hub
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          Dockerfile: Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/spring-boot-for-beginners:$(date-'%Y-%m-%d%H-%M-%S')
